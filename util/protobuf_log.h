@@ -7,6 +7,11 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 std::ostream &operator<<(std::ostream &out, google::protobuf::Message const &message)
 {
   google::protobuf::io::OstreamOutputStream output(&out);
@@ -18,3 +23,5 @@ std::ostream &operator<<(std::ostream &out, google::protobuf::Message const &mes
 
   return out;
 }
+
+template <> struct fmt::formatter<google::protobuf::Message> : fmt::ostream_formatter {};

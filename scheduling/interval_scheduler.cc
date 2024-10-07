@@ -26,7 +26,8 @@ bool IntervalScheduler::start(TimerPeriod timeout, TimerPeriod interval)
   interval_ = interval;
 
   if (auto result = timer_.defer(timeout); !result) {
-    LOG::error("unable to start interval scheduler: {}", result.error());
+    //LOG::error("unable to start interval scheduler: {}", result.error());
+    spdlog::error("unable to start interval scheduler: {}", result.error());
     return false;
   }
 

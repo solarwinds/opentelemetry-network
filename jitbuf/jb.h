@@ -16,6 +16,11 @@
 #include <cstdint>
 #include <cstring>
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 extern "C" {
 #endif /* __cplusplus */
 
@@ -135,6 +140,8 @@ template <std::size_t Size> std::string_view render_array_to_string_view(std::ui
 {
   return {reinterpret_cast<char const *>(data), strnlen(reinterpret_cast<char const *>(data), Size / sizeof(*data))};
 }
+
+template <> struct fmt::formatter<jb_blob> : fmt::ostream_formatter {};
 
 #endif /* __cplusplus */
 

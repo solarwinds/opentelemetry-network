@@ -4,10 +4,30 @@
 #include <util/log.h>
 #include <util/log_formatters.h>
 
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/formatter.h>
+
 #include <curlpp/Easy.hpp>
 #include <curlpp/Infos.hpp>
 #include <curlpp/Options.hpp>
 #include <curlpp/cURLpp.hpp>
+
+namespace fmt {
+template <typename Rep, typename Period>
+struct formatter<std::chrono::duration<Rep, Period>> {
+    // Parsing the format string (optional in this case)
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
+
+    // Format the std::chrono::duration
+    template <typename FormatContext>
+    auto format(const std::chrono::duration<Rep, Period> &duration, FormatContext &ctx) {
+        // Convert the duration to milliseconds and print it
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+        return format_to(ctx.out(), "{} ms", ms);
+    }
+};
+}  // namespace fmt
 
 template <typename T> Expected<T, std::runtime_error> RestfulFetcher::CtorDecoder<T>::operator()(std::string body) const
 {

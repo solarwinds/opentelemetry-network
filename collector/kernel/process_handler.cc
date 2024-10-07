@@ -46,7 +46,8 @@ void ProcessHandler::on_new_process(std::chrono::nanoseconds timestamp, struct j
 #endif // DEBUG_TGID
   }
 
-  auto weak_handle = collector_index_.tracked_process.by_key({.cgroup = msg.cgroup, .tgid = msg.pid});
+  ebpf_net::kernel_collector::keys::tracked_process key{msg.cgroup, msg.pid};  // Create the key explicitly
+  auto weak_handle = collector_index_.tracked_process.by_key(key);
   assert(msg.pid == weak_handle.tgid());
   assert(msg.cgroup == weak_handle.cgroup());
 

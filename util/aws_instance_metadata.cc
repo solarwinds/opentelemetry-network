@@ -20,6 +20,11 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 #define METADATA_PREFIX "http://169.254.169.254/2016-09-02/meta-data/"
 #define DYNAMIC_METADATA_PREFIX "http://169.254.169.254/2016-09-02/dynamic/"
 #define MAX_LEN 4096
@@ -379,3 +384,5 @@ std::ostream &operator<<(std::ostream &os, const AwsMetadataValue &val)
   os << "AWS-Meta(valid=" << val.valid() << " value='" << val.value() << "')";
   return os;
 }
+
+template <> struct fmt::formatter<AwsMetadataValue> : fmt::ostream_formatter {};

@@ -181,7 +181,11 @@ int handle_kprobe__tcp_sendmsg(struct pt_regs *ctx, struct sock *sk, struct msgh
     return 0;
   }
   // can access through iov since iov and kvec are union and have same layout
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 4, 0)
   bpf_probe_read(&iov, sizeof(iov), &(msg->msg_iter.iov));
+#else
+  bpf_probe_read(&iov, sizeof(iov), &(msg->msg_iter.__iov));
+#endif
   bpf_probe_read(&nr_segs, sizeof(nr_segs), &(msg->msg_iter.nr_segs));
   bpf_probe_read(&iov_offset, sizeof(iov_offset), &(msg->msg_iter.iov_offset));
 #endif
@@ -390,7 +394,11 @@ int handle_kprobe__tcp_recvmsg(
     return 0;
   }
   // can access through iov since iov and kvec are union and have same layout
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 4, 0)
   bpf_probe_read(&iov, sizeof(iov), &(msg->msg_iter.iov));
+#else
+  bpf_probe_read(&iov, sizeof(iov), &(msg->msg_iter.__iov));
+#endif
 #endif
 #pragma passthrough off
 

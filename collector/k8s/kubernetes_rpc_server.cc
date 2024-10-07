@@ -11,6 +11,9 @@
 #include <unordered_set>
 #include <vector>
 
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/formatter.h>
+
 #include "channel/buffered_writer.h"
 #include "generated/ebpf_net/ingest/writer.h"
 #include "generated/kubernetes_info.pb.h"
@@ -21,6 +24,72 @@
 #include "util/log.h"
 #include "util/lookup3_hasher.h"
 #include <util/protobuf_log.h>
+
+// A libfmt formatter for ReplicaSetInfo, used to print addresses in LOG::trace
+// etc.
+namespace fmt {
+template <> struct formatter<collector::OwnerInfo> {
+    // Parsing (optional, since we don't need custom specifiers)
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
+
+    // Formatting method
+    template <typename FormatContext>
+    auto format(const collector::OwnerInfo &owner, FormatContext &ctx) {
+        return format_to(ctx.out(), "OwnerInfo(uid: {}, name: {}, kind: {})",
+                         owner.uid(), owner.name(), owner.kind());
+    }
+};
+template <> struct formatter<collector::ContainerInfo> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const collector::ContainerInfo &container, FormatContext &ctx) {
+        return format_to(ctx.out(), "ContainerInfo(id: {}, name: {}, image: {})",
+                         container.id(), container.name(), container.image());
+    }
+};
+template <> struct formatter<collector::PodInfo> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const collector::PodInfo &pod, FormatContext &ctx) {
+        // Format the containers and container_infos into a string
+        std::string containers_str;
+        for (const auto& container : pod.container_infos()) {
+            containers_str += fmt::format("{}", container);
+            containers_str += ", ";
+        }
+
+        return format_to(ctx.out(),
+                         "PodInfo(uid: {}, ip: {}, name: {}, owner: {}, ns: {}, version: {}, is_host_network: {}, containers: [{}])",
+                         pod.uid(), pod.ip(), pod.name(), pod.owner(), pod.ns(),
+                         pod.version(), pod.is_host_network(), containers_str);
+    }
+};
+template <> struct formatter<collector::ReplicaSetInfo> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const collector::ReplicaSetInfo &replica_set, FormatContext &ctx) {
+        return format_to(ctx.out(), "ReplicaSetInfo(uid: {}, owner: {})",
+                         replica_set.uid(), replica_set.owner());
+    }
+};
+template <> struct formatter<collector::JobInfo> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const collector::JobInfo &job, FormatContext &ctx) {
+        return format_to(ctx.out(), "JobInfo(uid: {}, owner: {})",
+                         job.uid(), job.owner());
+    }
+};
+} // namespace fmt
 
 namespace collector {
 using ::grpc::ServerContext;

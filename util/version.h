@@ -11,6 +11,11 @@
 #include <tuple>
 #include <utility>
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 class VersionInfo {
 public:
   constexpr explicit VersionInfo(u32 major = 0, u32 minor = 0, u32 patch = 0, std::string_view signature = {})
@@ -53,3 +58,5 @@ public:
 private:
   std::tuple<u32, u32, u32, std::string_view> version_;
 };
+
+template <> struct fmt::formatter<VersionInfo> : fmt::ostream_formatter {};

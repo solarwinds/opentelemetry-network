@@ -320,6 +320,10 @@ class SpanGenerator {
     #include <ostream>
     #include <string>
     #include <vector>
+    #include <spdlog/cfg/env.h>
+    #include <spdlog/fmt/fmt.h>
+    #include <spdlog/fmt/ostr.h>
+    #include <spdlog/spdlog.h>
 
     namespace «app.pkg.name»::«app.name» {
 
@@ -386,6 +390,8 @@ class SpanGenerator {
     };
 
     } // namespace «app.pkg.name»::«app.name»
+    template <>
+    struct fmt::formatter<«app.pkg.name»::«app.name»::Index> : fmt::ostream_formatter {};
     '''
   }
 
@@ -462,6 +468,11 @@ class SpanGenerator {
     #include <util/short_string.h>
     #include <util/fixed_hash.h>
     #include <util/metric_store.h>
+
+    #include <spdlog/cfg/env.h>
+    #include <spdlog/fmt/fmt.h>
+    #include <spdlog/fmt/ostr.h>
+    #include <spdlog/spdlog.h>
 
     #include <ostream>
 
@@ -658,6 +669,10 @@ class SpanGenerator {
     } // namespace containers
 
     } // namespace «app.pkg.name»::«app.name»
+    «FOR span : app.spans»
+    template <>
+    struct fmt::formatter<«app.pkg.name»::«app.name»::containers::«span.name»> : fmt::ostream_formatter {};
+    «ENDFOR»
     '''
   }
 
@@ -1568,6 +1583,11 @@ class SpanGenerator {
     #include <util/short_string.h>
     #include <jitbuf/jb.h>
 
+    #include <spdlog/cfg/env.h>
+    #include <spdlog/fmt/fmt.h>
+    #include <spdlog/fmt/ostr.h>
+    #include <spdlog/spdlog.h>
+
     #include <array>
 
     /* Span implementation classes */
@@ -1760,6 +1780,11 @@ class SpanGenerator {
     } // namespace weak_refs
 
     } // namespace «app.pkg.name»::«app.name»
+
+    «FOR span : app.spans»
+    template <>
+    struct fmt::formatter<«app.pkg.name»::«app.name»::weak_refs::«span.name»> : fmt::ostream_formatter {};
+    «ENDFOR»
     '''
   }
 
@@ -2196,6 +2221,11 @@ class SpanGenerator {
     #include <util/short_string.h>
     #include <array>
 
+    #include <spdlog/cfg/env.h>
+    #include <spdlog/fmt/fmt.h>
+    #include <spdlog/fmt/ostr.h>
+    #include <spdlog/spdlog.h>
+
     /* Span implementation classes */
     «FOR app_span : app.spans.filter[include !== null]»
       #include «app_span.include»
@@ -2312,6 +2342,10 @@ class SpanGenerator {
     } // namespace spans
 
     } // namespace «app.pkg.name»::«app.name»
+    «FOR span : app.spans»
+    template <>
+    struct fmt::formatter<«app.pkg.name»::«app.name»::spans::«span.name»> : fmt::ostream_formatter {};
+    «ENDFOR»
     '''
   }
 

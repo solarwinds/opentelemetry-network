@@ -65,7 +65,7 @@ struct Panicker {
   {
     fmt::memory_buffer out;
 #if FMT_VERSION >= 60000
-    fmt::format_to(std::back_inserter(out), format, std::forward<Args>(args)...);
+    fmt::format_to(std::back_inserter(out), fmt::runtime(format), std::forward<Args>(args)...);
 #else
     fmt::format_to(out, format, std::forward<Args>(args)...);
 #endif
