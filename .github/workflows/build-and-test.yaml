@@ -121,6 +121,7 @@ jobs:
         ./build.sh k8s-relay
 
   build-cloud-collector:
+    if: false
     name: build-cloud-collector
     runs-on: ubuntu-20.04
     needs: [clang-format-check]
