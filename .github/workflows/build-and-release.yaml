@@ -151,7 +151,7 @@ jobs:
           images=(
             reducer
             kernel-collector
-            cloud-collector
+            # cloud-collector
             k8s-watcher
             k8s-relay
           )

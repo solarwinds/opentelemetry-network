@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <config.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/spdlog.h>
 
 #include "otlp_grpc_publisher.h"
 
@@ -9,6 +11,7 @@
 #include <reducer/internal_stats.h>
 #include <util/time.h>
 
+template <> struct fmt::formatter<grpc::StatusCode> : fmt::ostream_formatter {};
 namespace reducer {
 
 OtlpGrpcPublisher::OtlpGrpcPublisher(size_t num_writer_threads, const std::string &server_address_and_port)

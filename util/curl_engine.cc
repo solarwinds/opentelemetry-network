@@ -9,6 +9,8 @@
 
 #include <util/log.h>
 
+template <> struct fmt::formatter<CURLMSG> : fmt::ostream_formatter {};
+
 namespace {
 
 static constexpr size_t kWriteBufferCapacity = CURL_MAX_WRITE_SIZE;

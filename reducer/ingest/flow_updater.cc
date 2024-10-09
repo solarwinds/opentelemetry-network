@@ -142,32 +142,35 @@ void FlowUpdater::put_handles()
     return ::ebpf_net::ingest::handles::flow().access(*local_index());
   }
 
-  if (flow_handle_.valid() && flow_handle_.loc() == flow.loc()) {
-    // unchanged
-    return flow;
-  }
+    // Access weak_refs::flow from auto_handles::flow
+    auto weak_ref_flow = flow_handle_.access(*local_index());
+
+    // Check if the current flow_handle_ is already the same as weak_ref_flow's location
+    if (flow_handle_.valid() && flow_handle_.loc() == weak_ref_flow.loc()) {
+        return weak_ref_flow; // If unchanged, return the current weak_refs::flow
+    }
 
   if (ordered) {
     // override the flow's "connector" if it is not unknown, otherwise leave it
     // be
     if (is_connector_ != 0) {
-      flow.modify().is_connector(is_connector_);
+      weak_ref_flow.modify().is_connector(is_connector_);
     }
     side_ = FlowSide::SIDE_A;
   } else {
     // override the flow's "connector" if it is not unknown, otherwise leave it
     // be
     if (is_connector_ != 0) {
-      flow.modify().is_connector(reverse_connector(is_connector_));
+      weak_ref_flow.modify().is_connector(reverse_connector(is_connector_));
     }
     side_ = FlowSide::SIDE_B;
   }
 
   if (auto process = process_handle_.access(*local_index()); process.valid()) {
     if (side_ == FlowSide::SIDE_A) {
-      flow.modify().process1(process.get());
+      weak_ref_flow.modify().process1(process.get());
     } else {
-      flow.modify().process2(process.get());
+      weak_ref_flow.modify().process2(process.get());
     }
 
     std::string_view cgroup_name;
@@ -190,22 +193,22 @@ void FlowUpdater::put_handles()
       // so if we are looking at the child, and the parent is valid and has a pod id,
       // send it on.
       if (auto parent = cgroup.parent(); parent.valid() && (parent.pod_uid_suffix().at(0) != 0)) {
-        flow.k8s_info((u8)side_, parent.pod_uid_suffix().data(), parent.pod_uid_hash());
+        weak_ref_flow.k8s_info((u8)side_, parent.pod_uid_suffix().data(), parent.pod_uid_hash());
       } else if (
           // for systemd style, the cgroup has the entire hierarchy embedded in the cgroup
           // so parse it, and look to see if one has a pod id, a container id, and if
           // this pod_uid_suffix has been assigned.  if so, send that up.
           !cgroup_info.pod_id.empty() && !cgroup_info.container_id.empty() && cgroup.pod_uid_suffix().at(0) != 0) {
-        flow.k8s_info((u8)side_, cgroup.pod_uid_suffix().data(), cgroup.pod_uid_hash());
+        weak_ref_flow.k8s_info((u8)side_, cgroup.pod_uid_suffix().data(), cgroup.pod_uid_hash());
       }
     }
 
     // Send task information to flow.
-    flow.task_info((u8)side_, jb_blob(process.comm()), jb_blob(cgroup_name));
+    weak_ref_flow.task_info((u8)side_, jb_blob(process.comm()), jb_blob(cgroup_name));
 
     if (!service_name.empty()) {
       // Send service information, if any.
-      flow.service_info((u8)side_, jb_blob(service_name));
+      weak_ref_flow.service_info((u8)side_, jb_blob(service_name));
     }
   }
 
@@ -222,7 +225,7 @@ void FlowUpdater::put_handles()
     }
 
     // send socket information to flow
-    flow.socket_info(
+    weak_ref_flow.socket_info(
         (u8)side_, local_addr_buf, local_port_, remote_addr_buf, remote_port_, (u8)is_connector_, jb_blob(remote_dns_name));
   }
 
@@ -231,22 +234,22 @@ void FlowUpdater::put_handles()
     auto &agent = agent_ref.impl();
 
     // send agent information to flow
-    flow.agent_info((u8)side_, jb(agent.node_id()), jb(agent.node_az()), jb(agent.cluster()), jb(agent.role()), jb(agent.ns()));
+    weak_ref_flow.agent_info((u8)side_, jb(agent.node_id()), jb(agent.node_az()), jb(agent.cluster()), jb(agent.role()), jb(agent.ns()));
   }
 
   LOG::trace_in(
       Component::flow_update,
       "Flow::get_flow: flow={}, local_ip={}:{}, remote_ip={}:{}",
-      flow.loc(),
+      weak_ref_flow.loc(),
       local_addr_,
       local_port_,
       remote_addr_,
       remote_port_);
 
   flow_handle_.put(*local_index());
-  flow_handle_ = flow.get().to_handle();
+  flow_handle_ = weak_ref_flow.get().to_handle();
 
-  return flow;
+  return weak_ref_flow;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

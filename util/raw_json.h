@@ -121,8 +121,31 @@ Out &&print_escaped_json_string(Out &&out, std::array<unsigned char, Size> const
   return std::forward<Out>(out);
 }
 
-template <typename T, typename Out> Out &&print_json_value(Out &&out, T const &value)
-{
+inline std::string print_int128(__int128 value) {
+    std::ostringstream oss;
+    bool is_negative = value < 0;
+    __uint128_t uvalue = is_negative ? -static_cast<__uint128_t>(value) : value;  // Treat as unsigned for conversion
+    
+    // Handle zero case
+    if (uvalue == 0) {
+        return "0";
+    }
+
+    std::string result;
+    while (uvalue > 0) {
+        result = static_cast<char>('0' + (uvalue % 10)) + result;
+        uvalue /= 10;
+    }
+
+    if (is_negative) {
+        result = "-" + result;
+    }
+
+    return result;
+}
+
+template <typename T, typename Out>
+Out &&print_json_value(Out &&out, T const &value) {
   if constexpr (std::is_same_v<bool, T>) {
     constexpr char const *literals[] = {"false", "true"};
     out << literals[value];
@@ -132,6 +155,9 @@ template <typename T, typename Out> Out &&print_json_value(Out &&out, T const &v
   } else if constexpr (std::is_same_v<std::uint8_t, T> || std::is_same_v<unsigned char, T>) {
     // avoid printing the raw character
     out << static_cast<std::uint16_t>(value);
+  } else if constexpr (std::is_same_v<__int128, T> || std::is_same_v<unsigned __int128, T>) {
+    // handle 128-bit integers
+    out << print_int128(value);
   } else if constexpr (std::is_integral_v<T>) {
     out << value;
   } else {

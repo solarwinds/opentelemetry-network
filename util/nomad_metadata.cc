@@ -11,6 +11,8 @@
 
 #include <absl/strings/match.h>
 
+template <> struct fmt::formatter<nlohmann::json_abi_v3_11_3::basic_json<>> : fmt::ostream_formatter {};
+
 const std::string NOMAD_NAMESPACE_VAR = "NOMAD_NAMESPACE";
 const std::string NOMAD_GROUP_NAME_VAR = "NOMAD_GROUP_NAME";
 const std::string NOMAD_TASK_NAME_VAR = "NOMAD_TASK_NAME";

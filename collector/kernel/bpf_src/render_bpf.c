@@ -68,13 +68,15 @@ struct pkts_if_t {
 
 static inline u32 packets_in_flight_helper(struct sock *sk)
 {
-  struct tcp_sock *tp = tcp_sk(sk);
+  struct tcp_sock *tp;
   struct pkts_if_t t = {};
 
-  bpf_probe_read(&t.packets_out, sizeof(u32), &tp->packets_out);
-  bpf_probe_read(&t.sacked_out, sizeof(u32), &tp->sacked_out);
-  bpf_probe_read(&t.lost_out, sizeof(u32), &tp->lost_out);
-  bpf_probe_read(&t.retrans_out, sizeof(u32), &tp->retrans_out);
+  tp = tcp_sk(sk);
+
+  bpf_probe_read_kernel(&t.packets_out, sizeof(u32), &tp->packets_out);
+  bpf_probe_read_kernel(&t.sacked_out, sizeof(u32), &tp->sacked_out);
+  bpf_probe_read_kernel(&t.lost_out, sizeof(u32), &tp->lost_out);
+  bpf_probe_read_kernel(&t.retrans_out, sizeof(u32), &tp->retrans_out);
   return t.packets_out - (t.sacked_out + t.lost_out) + t.retrans_out;
 }
 

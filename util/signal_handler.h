@@ -16,6 +16,7 @@
 #include <memory>
 #include <string_view>
 #include <vector>
+#include <optional>
 
 struct SignalManager : cli::ArgsParser::Handler {
   explicit SignalManager(cli::ArgsParser &parser, ::uv_loop_t &loop, std::string_view product);

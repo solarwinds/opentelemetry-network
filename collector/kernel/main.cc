@@ -63,6 +63,7 @@ static constexpr auto SERVICE_OVERRIDE_VAR = "EBPF_NET_AGENT_SERVICE";
 static constexpr auto HOST_OVERRIDE_VAR = "EBPF_NET_AGENT_HOST";
 static constexpr auto ZONE_OVERRIDE_VAR = "EBPF_NET_AGENT_ZONE";
 
+template <> struct fmt::formatter<args::Flag> : fmt::ostream_formatter {};
 static void refill_log_rate_limit_cb(uv_timer_t *timer)
 {
   LOG::refill_rate_limit_budget(200);

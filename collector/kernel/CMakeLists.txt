@@ -15,8 +15,7 @@ target_link_libraries(
     agentxxdlib
     fastpass_util
     file_ops
-    bcc-interface
-    bcc-static
+    ${BCC_LIBS}       # System-installed BCC libraries
     config_file
     libuv-static
     args_parser
@@ -92,12 +91,12 @@ target_include_directories(
   SYSTEM
   BEFORE
   PUBLIC
-    /root/install/include/bcc/compat/
+    ${BCC_INCLUDE_DIRS}   # Use system-installed BCC include directories
 )
 target_link_libraries(
   agentlib
   PUBLIC
-    bcc-interface
+    ${BCC_LIBS}       # System-installed BCC libraries
     render_ebpf_net_agent_internal_hash
     render_ebpf_net_ingest_writer
     render_ebpf_net_kernel_collector
@@ -299,4 +298,4 @@ endif()
 #
 add_unit_test(cgroup_handler LIBS agentlib test_channel)
 add_unit_test(kernel_symbols LIBS agentlib)
-add_ebpf_unit_test(kernel_collector LIBS signal_handler agentlib agentxxdlib fastpass_util file_ops bcc-interface bcc-static config_file libuv-static system_ops static-executable test_channel)
+add_ebpf_unit_test(kernel_collector LIBS signal_handler agentlib agentxxdlib fastpass_util file_ops ${BCC_LIBS} config_file libuv-static system_ops static-executable test_channel)

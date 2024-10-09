@@ -9,6 +9,7 @@
 #include <collector/kernel/troubleshoot_item.h>
 #include <common/host_info.h>
 #include <util/logger.h>
+#include <optional>
 
 /**
  * Prints a troubleshooting message for the error contained in the given

@@ -8,6 +8,11 @@
 #include <util/log_formatters.h>
 #include <util/time.h>
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 #include <chrono>
 
 template <typename Clock = ::monotonic_clock> class StopWatch {
@@ -65,3 +70,5 @@ public:
 private:
   time_point start_;
 };
+
+template <typename Clock> struct fmt::formatter<StopWatch<Clock>> : fmt::ostream_formatter {};

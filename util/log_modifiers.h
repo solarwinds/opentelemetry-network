@@ -9,6 +9,11 @@
 #include <type_traits>
 #include <utility>
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 #include <cassert>
 
 namespace logger {
@@ -370,6 +375,13 @@ private:
 };
 
 } // namespace logger::impl
+
+template <typename T> struct fmt::formatter<logger::impl::waived_t<T>> : fmt::ostream_formatter {};
+template <typename WhenTrue, typename WhenFalse> struct fmt::formatter<logger::impl::either_t<WhenTrue, WhenFalse>> : fmt::ostream_formatter {};
+template <typename T, char Open, char Close> struct fmt::formatter<logger::impl::surrounded_t<T, Open, Close>> : fmt::ostream_formatter {};
+template <typename Key, typename Value, char Separator, char Open, char Close>
+struct fmt::formatter<logger::impl::kv_pair_t<Key, Value, Separator, Open, Close>> : fmt::ostream_formatter {};
+template <typename Fn> struct fmt::formatter<logger::impl::callable_t<Fn>> : fmt::ostream_formatter {};
 
 /**
  * A logging helper to allow logging the result of a callable object.
