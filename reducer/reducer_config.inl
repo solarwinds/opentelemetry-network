@@ -5,11 +5,11 @@
 
 #pragma once
 
-#include <utility>
 #include <spdlog/cfg/env.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
+#include <utility>
 
 namespace reducer {
 

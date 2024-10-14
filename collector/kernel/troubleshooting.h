@@ -8,8 +8,8 @@
 #include <collector/kernel/entrypoint_error.h>
 #include <collector/kernel/troubleshoot_item.h>
 #include <common/host_info.h>
-#include <util/logger.h>
 #include <optional>
+#include <util/logger.h>
 
 /**
  * Prints a troubleshooting message for the error contained in the given

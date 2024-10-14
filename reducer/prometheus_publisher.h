@@ -17,7 +17,6 @@
 
 template <> struct fmt::formatter<std::fpos<__mbstate_t>> : fmt::ostream_formatter {};
 
-
 class CivetServer;
 
 namespace reducer {

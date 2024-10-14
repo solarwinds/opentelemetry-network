@@ -142,13 +142,13 @@ void FlowUpdater::put_handles()
     return ::ebpf_net::ingest::handles::flow().access(*local_index());
   }
 
-    // Access weak_refs::flow from auto_handles::flow
-    auto weak_ref_flow = flow_handle_.access(*local_index());
+  // Access weak_refs::flow from auto_handles::flow
+  auto weak_ref_flow = flow_handle_.access(*local_index());
 
-    // Check if the current flow_handle_ is already the same as weak_ref_flow's location
-    if (flow_handle_.valid() && flow_handle_.loc() == weak_ref_flow.loc()) {
-        return weak_ref_flow; // If unchanged, return the current weak_refs::flow
-    }
+  // Check if the current flow_handle_ is already the same as weak_ref_flow's location
+  if (flow_handle_.valid() && flow_handle_.loc() == weak_ref_flow.loc()) {
+    return weak_ref_flow; // If unchanged, return the current weak_refs::flow
+  }
 
   if (ordered) {
     // override the flow's "connector" if it is not unknown, otherwise leave it
@@ -234,7 +234,8 @@ void FlowUpdater::put_handles()
     auto &agent = agent_ref.impl();
 
     // send agent information to flow
-    weak_ref_flow.agent_info((u8)side_, jb(agent.node_id()), jb(agent.node_az()), jb(agent.cluster()), jb(agent.role()), jb(agent.ns()));
+    weak_ref_flow.agent_info(
+        (u8)side_, jb(agent.node_id()), jb(agent.node_az()), jb(agent.cluster()), jb(agent.role()), jb(agent.ns()));
   }
 
   LOG::trace_in(
