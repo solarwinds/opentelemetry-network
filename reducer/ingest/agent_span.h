@@ -278,4 +278,5 @@ private:
 
 } // namespace reducer::ingest
 
-template <> struct fmt::formatter<reducer::ingest::AgentSpan::bpf_log_entry> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<reducer::ingest::AgentSpan::bpf_log_entry> : fmt::ostream_formatter {
+};

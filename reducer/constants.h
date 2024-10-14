@@ -104,6 +104,7 @@ constexpr VersionInfo MINIMUM_ACCEPTED_VERSION{0, 9, 0};
 
 } // namespace versions::client
 
-template <> struct fmt::formatter<FlowSide> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<FlowSide> : fmt::ostream_formatter {
+};
 
 #include <reducer/constants.inl>

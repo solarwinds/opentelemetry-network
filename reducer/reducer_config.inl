@@ -60,4 +60,5 @@ template <typename Out> Out &&operator<<(Out &&out, ReducerConfig const &config)
 
 } // namespace reducer
 
-template <> struct fmt::formatter<reducer::ReducerConfig> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<reducer::ReducerConfig> : fmt::ostream_formatter {
+};

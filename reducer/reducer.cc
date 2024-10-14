@@ -39,8 +39,10 @@
 #include <thread>
 #include <vector>
 
-template <> struct fmt::formatter<std::filesystem::path> : fmt::ostream_formatter {};
-template <typename Rep, typename Period> struct fmt::formatter<std::chrono::duration<Rep, Period>> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<std::filesystem::path> : fmt::ostream_formatter {
+};
+template <typename Rep, typename Period> struct fmt::formatter<std::chrono::duration<Rep, Period>> : fmt::ostream_formatter {
+};
 
 namespace reducer {
 
