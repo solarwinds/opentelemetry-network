@@ -11,8 +11,6 @@
 #include <reducer/internal_stats.h>
 #include <util/time.h>
 
-template <> struct fmt::formatter<grpc::StatusCode> : fmt::ostream_formatter {
-};
 namespace reducer {
 
 OtlpGrpcPublisher::OtlpGrpcPublisher(size_t num_writer_threads, const std::string &server_address_and_port)
