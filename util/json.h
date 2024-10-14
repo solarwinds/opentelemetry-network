@@ -13,6 +13,8 @@
 
 #include <cstdlib>
 
+template <> struct fmt::formatter<nlohmann::json> : fmt::ostream_formatter {};
+
 inline nlohmann::json const *follow_path(nlohmann::json const &object)
 {
   return &object;

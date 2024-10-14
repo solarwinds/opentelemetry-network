@@ -31,6 +31,7 @@ template <> struct fmt::formatter<std::chrono::milliseconds> : fmt::ostream_form
 template <> struct fmt::formatter<std::chrono::microseconds> : fmt::ostream_formatter {};
 template <> struct fmt::formatter<std::chrono::nanoseconds> : fmt::ostream_formatter {};
 template <typename T, typename... Args> struct fmt::formatter<std::variant<T, Args...>> : fmt::ostream_formatter {};
+template <typename T> struct fmt::formatter<std::atomic<T>> : fmt::ostream_formatter {};
 
 class LOG {
 public:
