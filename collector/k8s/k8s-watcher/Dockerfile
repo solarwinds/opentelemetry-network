@@ -1,7 +1,7 @@
 # Copyright The OpenTelemetry Authors
 # SPDX-License-Identifier: Apache-2.0
 
-FROM bitnami/minideb:bullseye
+FROM bitnami/minideb:bookworm
 
 LABEL org.label-schema.name="opentelemetry-ebpf-k8s-watcher"
 LABEL org.label-schema.description="OpenTelemetry eBPF Kubernetes metadata collector watcher"
