@@ -12,7 +12,10 @@ namespace data {
 template <typename T> constexpr T CounterToRate<T>::commit_rate(bool empty_if_unitary)
 {
   T choice[2] = {value_ - prev_, T{}};
+  std::atomic_thread_fence(std::memory_order_release); 
   prev_ = value_;
+
+  std::atomic_thread_fence(std::memory_order_acquire);
   return choice[empty_if_unitary & (count_ < 2)];
 }
 
