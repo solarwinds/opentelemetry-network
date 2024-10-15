@@ -57,9 +57,9 @@ static u64 abs_val(int val)
 }
 
 #if __has_builtin(__builtin_bpf_probe_read_kernel) || LINUX_VERSION_CODE >= KERNEL_VERSION(5, 5, 0)
-#define my_bpf_probe_read(dst, size, src) bpf_probe_read_kernel(dst, size, src)
+#define use_bpf_probe_read(dst, size, src) bpf_probe_read_kernel(dst, size, src)
 #else
-#define my_bpf_probe_read(dst, size, src) bpf_probe_read(dst, size, src)
+#define use_bpf_probe_read(dst, size, src) bpf_probe_read(dst, size, src)
 #endif
 
 // using constants for placeholders for readability after code dump
@@ -86,10 +86,10 @@ static inline u32 packets_in_flight_helper(struct sock *sk)
 #endif
   struct pkts_if_t t = {};
 
-  my_bpf_probe_read(&t.packets_out, sizeof(u32), &tp->packets_out);
-  my_bpf_probe_read(&t.sacked_out, sizeof(u32), &tp->sacked_out);
-  my_bpf_probe_read(&t.lost_out, sizeof(u32), &tp->lost_out);
-  my_bpf_probe_read(&t.retrans_out, sizeof(u32), &tp->retrans_out);
+  use_bpf_probe_read(&t.packets_out, sizeof(u32), &tp->packets_out);
+  use_bpf_probe_read(&t.sacked_out, sizeof(u32), &tp->sacked_out);
+  use_bpf_probe_read(&t.lost_out, sizeof(u32), &tp->lost_out);
+  use_bpf_probe_read(&t.retrans_out, sizeof(u32), &tp->retrans_out);
 
   // Calculate packets in flight
   return t.packets_out - (t.sacked_out + t.lost_out) + t.retrans_out;
@@ -236,7 +236,7 @@ static int task_is_group_leader(struct pt_regs *ctx, struct task_struct *tsk)
   }
 
   struct task_struct *group_leader = NULL;
-  ret = my_bpf_probe_read(&group_leader, sizeof(group_leader), &tsk->group_leader);
+  ret = use_bpf_probe_read(&group_leader, sizeof(group_leader), &tsk->group_leader);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return 0;
@@ -263,7 +263,7 @@ static u64 get_task_cgroup(struct pt_regs *ctx, struct task_struct *tsk)
   }
 
   struct css_set *set = NULL;
-  ret = my_bpf_probe_read(&set, sizeof(set), &tsk->cgroups);
+  ret = use_bpf_probe_read(&set, sizeof(set), &tsk->cgroups);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return 0;
@@ -274,7 +274,7 @@ static u64 get_task_cgroup(struct pt_regs *ctx, struct task_struct *tsk)
   }
 
   struct cgroup_subsys_state *css = NULL;
-  ret = my_bpf_probe_read(&css, sizeof(css), &set->subsys[FLOW_CGROUP_SUBSYS]);
+  ret = use_bpf_probe_read(&css, sizeof(css), &set->subsys[FLOW_CGROUP_SUBSYS]);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return 0;
@@ -285,7 +285,7 @@ static u64 get_task_cgroup(struct pt_regs *ctx, struct task_struct *tsk)
   }
 
   struct cgroup *cgrp = NULL;
-  ret = my_bpf_probe_read(&cgrp, sizeof(cgrp), &css->cgroup);
+  ret = use_bpf_probe_read(&cgrp, sizeof(cgrp), &css->cgroup);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return 0;
@@ -303,14 +303,14 @@ static pid_t get_task_parent(struct pt_regs *ctx, struct task_struct *tsk)
   int ret = 0;
 
   struct task_struct *parent_tsk = NULL;
-  ret = my_bpf_probe_read(&parent_tsk, sizeof(parent_tsk), &tsk->parent);
+  ret = use_bpf_probe_read(&parent_tsk, sizeof(parent_tsk), &tsk->parent);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return -1;
   }
 
   pid_t parent_tgid = 0;
-  ret = my_bpf_probe_read(&parent_tgid, sizeof(parent_tgid), &parent_tsk->tgid);
+  ret = use_bpf_probe_read(&parent_tgid, sizeof(parent_tgid), &parent_tsk->tgid);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return -1;
@@ -386,7 +386,7 @@ int on_cgroup_exit(struct pt_regs *ctx, struct task_struct *tsk)
 {
   int ret;
   pid_t tgid = 0;
-  ret = my_bpf_probe_read(&tgid, sizeof(tgid), &(tsk->tgid));
+  ret = use_bpf_probe_read(&tgid, sizeof(tgid), &(tsk->tgid));
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return 0;
@@ -451,7 +451,7 @@ int on_set_task_comm(struct pt_regs *ctx, struct task_struct *tsk, const char *b
   u64 now = get_timestamp();
 
   pid_t tgid = 0;
-  ret = my_bpf_probe_read(&tgid, sizeof(tgid), &tsk->tgid);
+  ret = use_bpf_probe_read(&tgid, sizeof(tgid), &tsk->tgid);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return 0;
@@ -467,7 +467,7 @@ int on_wake_up_new_task(struct pt_regs *ctx, struct task_struct *tsk)
   int ret;
 
   pid_t tgid = 0;
-  ret = my_bpf_probe_read(&tgid, sizeof(tgid), &tsk->tgid);
+  ret = use_bpf_probe_read(&tgid, sizeof(tgid), &tsk->tgid);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return 0;
@@ -483,7 +483,7 @@ int on_wake_up_new_task(struct pt_regs *ctx, struct task_struct *tsk)
   pid_t parent_tgid = get_task_parent(ctx, tsk);
 
   u8 comm[16] = {};
-  ret = my_bpf_probe_read(comm, sizeof(comm), tsk->comm);
+  ret = use_bpf_probe_read(comm, sizeof(comm), tsk->comm);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return 0;
@@ -501,7 +501,7 @@ int onret_get_pid_task(struct pt_regs *ctx)
   struct task_struct *tsk = (struct task_struct *)PT_REGS_RC(ctx);
 
   pid_t tgid = 0;
-  ret = my_bpf_probe_read(&tgid, sizeof(tgid), &tsk->tgid);
+  ret = use_bpf_probe_read(&tgid, sizeof(tgid), &tsk->tgid);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), (u64)tsk, 0);
     return 0;
@@ -517,7 +517,7 @@ int onret_get_pid_task(struct pt_regs *ctx)
   pid_t parent_tgid = get_task_parent(ctx, tsk);
 
   u8 comm[16] = {};
-  ret = my_bpf_probe_read(comm, sizeof(comm), tsk->comm);
+  ret = use_bpf_probe_read(comm, sizeof(comm), tsk->comm);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return 0;
@@ -545,12 +545,12 @@ static inline u32 tcp_get_delivered(struct sock *sk)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)
   u32 packets_out = 0;
   u32 sacked_out = 0;
-  my_bpf_probe_read(&packets_out, sizeof(packets_out), &tp->packets_out);
-  my_bpf_probe_read(&sacked_out, sizeof(sacked_out), &tp->sacked_out);
+  use_bpf_probe_read(&packets_out, sizeof(packets_out), &tp->packets_out);
+  use_bpf_probe_read(&sacked_out, sizeof(sacked_out), &tp->sacked_out);
   return packets_out - sacked_out;
 #else
   u32 delivered = 0;
-  my_bpf_probe_read(&delivered, sizeof(delivered), &tp->delivered);
+  use_bpf_probe_read(&delivered, sizeof(delivered), &tp->delivered);
   return delivered;
 #endif
 #pragma passthrough off
@@ -565,13 +565,13 @@ report_rtt_estimator(struct pt_regs *ctx, struct sock *sk, struct tcp_open_socke
   u32 rcv_rtt_us = 0;
 #pragma passthrough on
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
-  my_bpf_probe_read(&rcv_rtt_us, sizeof(rcv_rtt_us), &tcp_sk(sk)->rcv_rtt_est.rtt);
+  use_bpf_probe_read(&rcv_rtt_us, sizeof(rcv_rtt_us), &tcp_sk(sk)->rcv_rtt_est.rtt);
 #else /* #if LINUX_VERSION_CODE < KERNEL_VERSION(4,12,0) */
-  my_bpf_probe_read(&rcv_rtt_us, sizeof(rcv_rtt_us), &tcp_sk(sk)->rcv_rtt_est.rtt_us);
+  use_bpf_probe_read(&rcv_rtt_us, sizeof(rcv_rtt_us), &tcp_sk(sk)->rcv_rtt_est.rtt_us);
 #endif
 #pragma passthrough off
 
-  // These values need to be taken from my_bpf_probe_read
+  // These values need to be taken from use_bpf_probe_read
   u32 srtt = 0;
   u32 snd_cwnd = 0;
   u64 bytes_acked = 0;
@@ -579,37 +579,37 @@ report_rtt_estimator(struct pt_regs *ctx, struct sock *sk, struct tcp_open_socke
   u32 packets_retrans = 0;
   u64 bytes_received = 0;
 
-  ret = my_bpf_probe_read(&srtt, sizeof(srtt), &(tcp_sk(sk)->srtt_us));
+  ret = use_bpf_probe_read(&srtt, sizeof(srtt), &(tcp_sk(sk)->srtt_us));
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
   }
 
-  ret = my_bpf_probe_read(&snd_cwnd, sizeof(snd_cwnd), &(tcp_sk(sk)->snd_cwnd));
+  ret = use_bpf_probe_read(&snd_cwnd, sizeof(snd_cwnd), &(tcp_sk(sk)->snd_cwnd));
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
   }
 
-  ret = my_bpf_probe_read(&bytes_acked, sizeof(bytes_acked), &(tcp_sk(sk)->bytes_acked));
+  ret = use_bpf_probe_read(&bytes_acked, sizeof(bytes_acked), &(tcp_sk(sk)->bytes_acked));
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
   }
 
-  ret = my_bpf_probe_read(&ca_state, sizeof(ca_state), &(*(&(inet_csk(sk)->icsk_sync_mss) + 1)));
+  ret = use_bpf_probe_read(&ca_state, sizeof(ca_state), &(*(&(inet_csk(sk)->icsk_sync_mss) + 1)));
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
   }
 
-  ret = my_bpf_probe_read(&packets_retrans, sizeof(packets_retrans), &(tcp_sk(sk)->total_retrans));
+  ret = use_bpf_probe_read(&packets_retrans, sizeof(packets_retrans), &(tcp_sk(sk)->total_retrans));
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
   }
 
-  ret = my_bpf_probe_read(&bytes_received, sizeof(bytes_received), &(tcp_sk(sk)->bytes_received));
+  ret = use_bpf_probe_read(&bytes_received, sizeof(bytes_received), &(tcp_sk(sk)->bytes_received));
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
@@ -668,7 +668,7 @@ static int add_tcp_open_socket(struct pt_regs *ctx, struct sock *sk, u32 tgid, u
 #endif
   };
 
-  ret = my_bpf_probe_read(&sk_info.bytes_received, sizeof(sk_info.bytes_received), &tcp_sk(sk)->bytes_received);
+  ret = use_bpf_probe_read(&sk_info.bytes_received, sizeof(sk_info.bytes_received), &tcp_sk(sk)->bytes_received);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return -1;
@@ -728,7 +728,7 @@ static void remove_tcp_open_socket(struct pt_regs *ctx, struct sock *sk)
 static inline void submit_set_state_ipv6(struct pt_regs *ctx, u64 now, int tx_rx, struct sock *sk)
 {
   struct sock *skp = NULL;
-  my_bpf_probe_read(&skp, sizeof(skp), &sk);
+  use_bpf_probe_read(&skp, sizeof(skp), &sk);
   if (!skp) {
     bpf_log(ctx, BPF_LOG_INVALID_POINTER, 0, 0, 0);
     return;
@@ -737,11 +737,11 @@ static inline void submit_set_state_ipv6(struct pt_regs *ctx, u64 now, int tx_rx
   u16 sport = 0;
   uint8_t daddr[16] = {};
   uint8_t saddr[16] = {};
-  // These values need to be taken from my_bpf_probe_read
-  my_bpf_probe_read(&dport, sizeof(dport), &(skp->sk_dport));
-  my_bpf_probe_read(&sport, sizeof(sport), &(skp->sk_num));
-  my_bpf_probe_read(daddr, sizeof(daddr), (uint8_t *)(sk->sk_v6_daddr.in6_u.u6_addr32));
-  my_bpf_probe_read(saddr, sizeof(saddr), (uint8_t *)(sk->sk_v6_rcv_saddr.in6_u.u6_addr32));
+  // These values need to be taken from use_bpf_probe_read
+  use_bpf_probe_read(&dport, sizeof(dport), &(skp->sk_dport));
+  use_bpf_probe_read(&sport, sizeof(sport), &(skp->sk_num));
+  use_bpf_probe_read(daddr, sizeof(daddr), (uint8_t *)(sk->sk_v6_daddr.in6_u.u6_addr32));
+  use_bpf_probe_read(saddr, sizeof(saddr), (uint8_t *)(sk->sk_v6_rcv_saddr.in6_u.u6_addr32));
   perf_submit_agent_internal__set_state_ipv6(ctx, now, daddr, saddr, ntohs(dport), sport, (__u64)sk, tx_rx);
 }
 
@@ -749,16 +749,16 @@ static inline void submit_set_state_ipv6(struct pt_regs *ctx, u64 now, int tx_rx
 static inline void submit_set_state_ipv4(struct pt_regs *ctx, u64 now, int tx_rx, struct sock *sk)
 {
   struct sock *skp = NULL;
-  my_bpf_probe_read(&skp, sizeof(skp), &sk);
+  use_bpf_probe_read(&skp, sizeof(skp), &sk);
   if (!skp) {
     bpf_log(ctx, BPF_LOG_INVALID_POINTER, 0, 0, 0);
     return;
   }
   u16 dport = 0;
   u16 sport = 0;
-  // These values need to be taken from my_bpf_probe_read
-  my_bpf_probe_read(&dport, sizeof(dport), &(skp->sk_dport));
-  my_bpf_probe_read(&sport, sizeof(sport), &(skp->sk_num));
+  // These values need to be taken from use_bpf_probe_read
+  use_bpf_probe_read(&dport, sizeof(dport), &(skp->sk_dport));
+  use_bpf_probe_read(&sport, sizeof(sport), &(skp->sk_num));
 
   perf_submit_agent_internal__set_state_ipv4(ctx, now, sk->sk_daddr, sk->sk_rcv_saddr, ntohs(dport), sport, (__u64)sk, tx_rx);
 }
@@ -770,19 +770,19 @@ static inline void submit_reset_tcp_counters(struct pt_regs *ctx, u64 now, u64 p
   u32 packets_retrans = 0;
   u64 bytes_received = 0;
 
-  ret = my_bpf_probe_read(&bytes_acked, sizeof(bytes_acked), &(tcp_sk(sk)->bytes_acked));
+  ret = use_bpf_probe_read(&bytes_acked, sizeof(bytes_acked), &(tcp_sk(sk)->bytes_acked));
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
   }
 
-  ret = my_bpf_probe_read(&packets_retrans, sizeof(packets_retrans), &(tcp_sk(sk)->total_retrans));
+  ret = use_bpf_probe_read(&packets_retrans, sizeof(packets_retrans), &(tcp_sk(sk)->total_retrans));
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
   }
 
-  ret = my_bpf_probe_read(&bytes_received, sizeof(bytes_received), &(tcp_sk(sk)->bytes_received));
+  ret = use_bpf_probe_read(&bytes_received, sizeof(bytes_received), &(tcp_sk(sk)->bytes_received));
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
@@ -1069,7 +1069,7 @@ int onret_inet_csk_accept(struct pt_regs *ctx)
 
   // filter out non-tcp connections
   u16 family = 0;
-  my_bpf_probe_read(&family, sizeof(family), &newsk->sk_family);
+  use_bpf_probe_read(&family, sizeof(family), &newsk->sk_family);
   if (family != AF_INET && family != AF_INET6) {
 #if DEBUG_TCP_SOCKET_ERRORS
     bpf_trace_printk("onret_inet_csk_accept: family is not ipv4 or ipv6 sk=%llx\n", newsk);
@@ -1119,8 +1119,8 @@ int onret_inet_csk_accept(struct pt_regs *ctx)
   // Set the state
   u16 dport = 0;
   u16 sport = 0;
-  my_bpf_probe_read(&dport, sizeof(dport), &newsk->sk_dport);
-  my_bpf_probe_read(&sport, sizeof(sport), &newsk->sk_num);
+  use_bpf_probe_read(&dport, sizeof(dport), &newsk->sk_dport);
+  use_bpf_probe_read(&sport, sizeof(sport), &newsk->sk_num);
 
   if (family == AF_INET) {
     perf_submit_agent_internal__set_state_ipv4(
@@ -1128,8 +1128,8 @@ int onret_inet_csk_accept(struct pt_regs *ctx)
   } else if (family == AF_INET6) {
     uint8_t daddr[16] = {};
     uint8_t saddr[16] = {};
-    my_bpf_probe_read(daddr, sizeof(daddr), (uint8_t *)(newsk->sk_v6_daddr.in6_u.u6_addr32));
-    my_bpf_probe_read(saddr, sizeof(saddr), (uint8_t *)(newsk->sk_v6_rcv_saddr.in6_u.u6_addr32));
+    use_bpf_probe_read(daddr, sizeof(daddr), (uint8_t *)(newsk->sk_v6_daddr.in6_u.u6_addr32));
+    use_bpf_probe_read(saddr, sizeof(saddr), (uint8_t *)(newsk->sk_v6_rcv_saddr.in6_u.u6_addr32));
     perf_submit_agent_internal__set_state_ipv6(ctx, now, daddr, saddr, ntohs(dport), sport, (__u64)newsk, 2);
   }
 
@@ -1244,7 +1244,7 @@ static int ensure_udp_existing(struct pt_regs *ctx, struct sock *sk, u32 tgid)
     }
 
     u16 lport = 0;
-    my_bpf_probe_read(&lport, sizeof(lport), &(inet_sk(sk)->inet_num));
+    use_bpf_probe_read(&lport, sizeof(lport), &(inet_sk(sk)->inet_num));
     perf_submit_agent_internal__udp_new_socket(ctx, now, tgid, (__u64)sk, (uint8_t *)(&addr), lport);
   }
   return ret;
@@ -1518,7 +1518,7 @@ int on_inet_release(struct pt_regs *ctx, struct socket *sock)
   GET_PID_TGID;
 
   struct sock *sk = NULL;
-  my_bpf_probe_read(&sk, sizeof(sk), &sock->sk);
+  use_bpf_probe_read(&sk, sizeof(sk), &sock->sk);
 
   if (!sk) {
     return 0;
@@ -1775,7 +1775,7 @@ int on_ip_send_skb(struct pt_regs *ctx, struct net *net, struct sk_buff *skb)
     struct tcphdr *tcp_hdr = (struct tcphdr *)(skb->head + skb->transport_header);
 
     u16 flags = 0;
-    my_bpf_probe_read(&flags, 2, ((u8 *)tcp_hdr) + 12);
+    use_bpf_probe_read(&flags, 2, ((u8 *)tcp_hdr) + 12);
 
     if (flags & TCP_FLAG_RST) {
       // bpf_trace_printk("on_ip_send_skb: tcp rst is set\n");
@@ -1815,7 +1815,7 @@ int on_ip6_send_skb(struct pt_regs *ctx, struct sk_buff *skb)
     struct tcphdr *tcp_hdr = (struct tcphdr *)(skb->head + skb->transport_header);
 
     u16 flags = 0;
-    my_bpf_probe_read(&flags, 2, ((u8 *)tcp_hdr) + 12);
+    use_bpf_probe_read(&flags, 2, ((u8 *)tcp_hdr) + 12);
 
     if (flags & TCP_FLAG_RST) {
       // bpf_trace_printk("on_ip6_send_skb: tcp rst is set\n");
@@ -1845,7 +1845,7 @@ int handle_receive_udp_skb(struct pt_regs *ctx, struct sock *sk, struct sk_buff 
 
   // get the version from the ip packet (common location for ipv4 and ipv6)
   u8 version;
-  my_bpf_probe_read(&version, 1, (const u8 *)ip_hdr);
+  use_bpf_probe_read(&version, 1, (const u8 *)ip_hdr);
   version &= 0xF0;
 
   // Parse the addresses out of the header
@@ -1931,7 +1931,7 @@ int on_tcp_rcv_established(struct pt_regs *ctx, struct sock *sk, struct sk_buff 
 
   int ret;
   u64 bytes_received = 0;
-  ret = my_bpf_probe_read(&bytes_received, sizeof(bytes_received), &tcp_sk(sk)->bytes_received);
+  ret = use_bpf_probe_read(&bytes_received, sizeof(bytes_received), &tcp_sk(sk)->bytes_received);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return 0;
@@ -1963,7 +1963,7 @@ int on_tcp_event_data_recv(struct pt_regs *ctx, struct sock *sk, struct sk_buff 
 
   int ret;
   u64 bytes_received = 0;
-  ret = my_bpf_probe_read(&bytes_received, sizeof(bytes_received), &tcp_sk(sk)->bytes_received);
+  ret = use_bpf_probe_read(&bytes_received, sizeof(bytes_received), &tcp_sk(sk)->bytes_received);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return 0;
@@ -2026,7 +2026,7 @@ int on_tcp_syn_ack_timeout(
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 0)
   /* Linux<4.4 does not have req->rsk_listener */
   struct sock *sk = NULL;
-  my_bpf_probe_read(&sk, sizeof(sk), &(req->sk));
+  use_bpf_probe_read(&sk, sizeof(sk), &(req->sk));
 
   struct tcp_open_socket_t *sk_info;
   sk_info = tcp_open_sockets.lookup(&sk);
@@ -2044,7 +2044,7 @@ int on_tcp_syn_ack_timeout(
 #else
 
   struct sock *sk = NULL;
-  my_bpf_probe_read(&sk, sizeof(sk), &(req->sk));
+  use_bpf_probe_read(&sk, sizeof(sk), &(req->sk));
   if (sk == NULL) {
     bpf_log(ctx, BPF_LOG_UNREACHABLE, 0, 0, 0);
     return 0;
@@ -2081,7 +2081,7 @@ static void
 perf_check_and_submit_dns(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb, u8 proto, u16 sport, u16 dport, int is_rx)
 {
   unsigned int len = 0;
-  my_bpf_probe_read(&len, sizeof(len), &skb->len);
+  use_bpf_probe_read(&len, sizeof(len), &skb->len);
 
   // Filter for DNS requests and responses
   if (!((proto == IPPROTO_UDP) && ((sport == htons(53)) || (dport == htons(53))) && (len > 0))) {
@@ -2092,35 +2092,35 @@ perf_check_and_submit_dns(struct pt_regs *ctx, struct sock *sk, struct sk_buff *
   int ret;
 
   unsigned int skb_data_len = 0;
-  ret = my_bpf_probe_read(&skb_data_len, sizeof(skb->data_len), &skb->data_len);
+  ret = use_bpf_probe_read(&skb_data_len, sizeof(skb->data_len), &skb->data_len);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
   }
 
   unsigned char *from = NULL;
-  ret = my_bpf_probe_read(&from, sizeof(skb->data), &skb->data);
+  ret = use_bpf_probe_read(&from, sizeof(skb->data), &skb->data);
   if (ret != 0 || from == NULL) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
   }
 
   unsigned char *skb_head = NULL;
-  ret = my_bpf_probe_read(&skb_head, sizeof(skb->head), &skb->head);
+  ret = use_bpf_probe_read(&skb_head, sizeof(skb->head), &skb->head);
   if (ret != 0 || skb_head == NULL) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
   }
 
   u16 skb_transport_header = 0;
-  ret = my_bpf_probe_read(&skb_transport_header, sizeof(skb->transport_header), &skb->transport_header);
+  ret = use_bpf_probe_read(&skb_transport_header, sizeof(skb->transport_header), &skb->transport_header);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
   }
 
   u16 skb_network_header = 0;
-  ret = my_bpf_probe_read(&skb_network_header, sizeof(skb->network_header), &skb->network_header);
+  ret = use_bpf_probe_read(&skb_network_header, sizeof(skb->network_header), &skb->network_header);
   if (ret != 0) {
     bpf_log(ctx, BPF_LOG_BPF_CALL_FAILED, abs_val(ret), 0, 0);
     return;
@@ -2190,7 +2190,7 @@ perf_check_and_submit_dns(struct pt_regs *ctx, struct sock *sk, struct sk_buff *
   /* the actual offset into buf has to start from buf's start */
   char *to = buf + bpf_agent_internal__dns_packet__data_size;
 
-  my_bpf_probe_read(to, DNS_MAX_PACKET_LEN, from);
+  use_bpf_probe_read(to, DNS_MAX_PACKET_LEN, from);
 
   struct bpf_agent_internal__dns_packet *const msg = (struct bpf_agent_internal__dns_packet *)&buf[0];
   struct jb_blob blob = {to, valid_len};
@@ -2301,7 +2301,7 @@ int on_kill_css(struct pt_regs *ctx, struct cgroup_subsys_state *css)
 int on_cgroup_destroy_locked(struct pt_regs *ctx, struct cgroup *cgrp)
 {
   struct cgroup_subsys_state *css = NULL;
-  my_bpf_probe_read(&css, sizeof(css), &(cgrp->subsys[FLOW_CGROUP_SUBSYS]));
+  use_bpf_probe_read(&css, sizeof(css), &(cgrp->subsys[FLOW_CGROUP_SUBSYS]));
   if (css == NULL)
     return 0;
 
@@ -2333,7 +2333,7 @@ int on_css_populate_dir(struct pt_regs *ctx, struct cgroup_subsys_state *css)
 int on_cgroup_populate_dir(struct pt_regs *ctx, struct cgroup *cgrp, unsigned long subsys_mask)
 {
   struct cgroup_subsys_state *css = NULL;
-  my_bpf_probe_read(&css, sizeof(css), &(cgrp->subsys[FLOW_CGROUP_SUBSYS]));
+  use_bpf_probe_read(&css, sizeof(css), &(cgrp->subsys[FLOW_CGROUP_SUBSYS]));
   if (css == NULL)
     return 0;
 
