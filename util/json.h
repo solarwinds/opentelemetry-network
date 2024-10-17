@@ -6,12 +6,18 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 
 #include <optional>
 #include <string>
 #include <utility>
 
 #include <cstdlib>
+
+template <> struct fmt::formatter<nlohmann::json> : fmt::ostream_formatter {};
 
 inline nlohmann::json const *follow_path(nlohmann::json const &object)
 {

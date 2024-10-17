@@ -20,6 +20,19 @@
 #include <util/log_modifiers.h>
 #include <util/log_whitelist.h>
 
+template <> struct fmt::formatter<std::runtime_error> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<std::errc> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<std::error_code> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<std::exception> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<std::chrono::hours> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<std::chrono::minutes> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<std::chrono::seconds> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<std::chrono::milliseconds> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<std::chrono::microseconds> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<std::chrono::nanoseconds> : fmt::ostream_formatter {};
+template <typename T, typename... Args> struct fmt::formatter<std::variant<T, Args...>> : fmt::ostream_formatter {};
+template <typename T> struct fmt::formatter<std::atomic<T>> : fmt::ostream_formatter {};
+
 class LOG {
 public:
   /**
@@ -53,7 +66,7 @@ public:
     if (rate_limited()) {
       return;
     }
-    spdlog::trace(format, args...);
+    spdlog::trace(fmt::runtime(format), args...);
 
   }
 
@@ -97,7 +110,7 @@ public:
     if (rate_limited()) {
       return;
     }
-    spdlog::debug(format, args...);
+    spdlog::debug(fmt::runtime(format), args...);
   }
 
   /**
@@ -142,7 +155,7 @@ public:
     if (rate_limited()) {
       return;
     }
-    spdlog::info(format, args...);
+    spdlog::info(fmt::runtime(format), args...);
   }
 
   template <typename Format, typename... Args> static void inline warn(Format &&format, Args &&... args)
@@ -151,7 +164,7 @@ public:
     if (rate_limited()) {
       return;
     }
-    spdlog::warn(format, args...);
+    spdlog::warn(fmt::runtime(format), args...);
   }
 
   template <typename Format, typename... Args> static void inline error(Format &&format, Args &&... args)
@@ -160,7 +173,7 @@ public:
     if (rate_limited()) {
       return;
     }
-    spdlog::error(format, args...);
+    spdlog::error(fmt::runtime(format), args...);
   }
 
   template <typename Format, typename... Args> static void inline critical(Format &&format, Args &&... args)
@@ -169,7 +182,7 @@ public:
     if (rate_limited()) {
       return;
     }
-    spdlog::critical(format, args...);
+    spdlog::critical(fmt::runtime(format), args...);
   }
 
 private:

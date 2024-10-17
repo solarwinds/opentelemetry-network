@@ -39,6 +39,10 @@
 //
 
 #include <util/preprocessor.h>
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 
 #ifndef ENUM_NAME
 #error "You must declare the name of the enum in ENUM_NAME"
@@ -225,6 +229,9 @@ template <typename Out> Out &operator<<(Out &&out, ENUM_NAME value)
 
 #ifdef ENUM_NAMESPACE
 } // namespace ENUM_NAMESPACE
+template <> struct fmt::formatter<ENUM_NAMESPACE::ENUM_NAME> : fmt::ostream_formatter {};
+#else  // ENUM_NAMESPACE
+template <> struct fmt::formatter<ENUM_NAME> : fmt::ostream_formatter {};
 #endif // ENUM_NAMESPACE
 
 // Clean up the things we've defined

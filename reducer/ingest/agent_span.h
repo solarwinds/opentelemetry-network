@@ -33,6 +33,11 @@
 #include <utility>
 #include <vector>
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 namespace reducer {
 class InternalMetricsEncoder;
 class SpanTest;
@@ -272,3 +277,6 @@ private:
 };
 
 } // namespace reducer::ingest
+
+template <> struct fmt::formatter<reducer::ingest::AgentSpan::bpf_log_entry> : fmt::ostream_formatter {
+};

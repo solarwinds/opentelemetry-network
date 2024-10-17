@@ -5,6 +5,10 @@
 
 #pragma once
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 #include <utility>
 
 namespace reducer {
@@ -55,3 +59,6 @@ template <typename Out> Out &&operator<<(Out &&out, ReducerConfig const &config)
 }
 
 } // namespace reducer
+
+template <> struct fmt::formatter<reducer::ReducerConfig> : fmt::ostream_formatter {
+};

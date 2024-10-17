@@ -85,3 +85,5 @@ void close_uv_loop_cleanly(uv_loop_t *loop);
 void close_uv_handle_cleanly(uv_handle_t *handle, void (*cb)(uv_handle_t *));
 
 std::error_category const &libuv_category() noexcept;
+
+template <> struct fmt::formatter<uv_error_t> : fmt::ostream_formatter {};

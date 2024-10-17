@@ -4,6 +4,11 @@
 #include <util/code_timing.h>
 #include <util/log.h>
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 #include <filesystem>
 
 #if ENABLE_CODE_TIMING
@@ -48,6 +53,8 @@ std::ostream &operator<<(std::ostream &os, CodeTiming const &timing)
 
   return os;
 }
+
+template <> struct fmt::formatter<CodeTiming> : fmt::ostream_formatter {};
 
 thread_local CodeTimingRegistry code_timing_registry_;
 

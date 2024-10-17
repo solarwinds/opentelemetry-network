@@ -30,3 +30,7 @@ eclipse.classpath.plusConfigurations += [configurations.mwe2]
 //this is an eclipse plugin project
 eclipseClasspath.enabled=false
 cleanEclipseClasspath.enabled=false
+
+tasks.named("processResources") {
+    dependsOn(":io.opentelemetry.render:generateXtextLanguage")
+}
