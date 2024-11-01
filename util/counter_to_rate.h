@@ -6,6 +6,7 @@
 #pragma once
 
 #include <utility>
+#include <atomic>
 
 #include <cstdlib>
 
@@ -18,7 +19,7 @@ template <typename T> struct CounterToRate {
 
   constexpr CounterToRate(T data, T prev = {}) : value_{std::move(data)}, prev_{std::move(prev)}, count_{1} {}
 
-  constexpr T peek_rate() const { return value_ - prev_; }
+  constexpr T peek_rate() const { std::atomic_thread_fence(std::memory_order_acquire); return value_ - prev_; }
   constexpr T commit_rate(bool empty_if_unitary = false);
 
   constexpr T const &value() const { return value_; }

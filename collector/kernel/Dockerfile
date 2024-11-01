@@ -1,7 +1,7 @@
 # Copyright The OpenTelemetry Authors
 # SPDX-License-Identifier: Apache-2.0
 
-FROM bitnami/minideb:bullseye
+FROM bitnami/minideb:bookworm
 
 LABEL org.label-schema.name="opentelemetry-ebpf-kernel-collector"
 LABEL org.label-schema.description="OpenTelemetry eBPF kernel information collector"
@@ -20,6 +20,11 @@ ENTRYPOINT [ "/srv/entrypoint.sh" ]
 
 # required by kernel_headers.sh script
 RUN install_packages coreutils curl sed tar dnf rpm
+
+
+RUN echo deb http://cloudfront.debian.net/debian sid main >> /etc/apt/sources.list
+RUN apt-get update
+RUN apt-get install -y bpfcc-tools libbpfcc libbpfcc-dev
 
 ARG BUILD_TYPE
 RUN if [ "$BUILD_TYPE" = "Debug" ]; then \

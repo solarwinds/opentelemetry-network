@@ -53,6 +53,11 @@ class MetricsGenerator {
     #include <util/gauge.h>
     #include <util/tdigest.h>
 
+    #include <spdlog/cfg/env.h>
+    #include <spdlog/fmt/fmt.h>
+    #include <spdlog/fmt/ostr.h>
+    #include <spdlog/spdlog.h>
+
     namespace «pkg_name» {
 
     namespace metrics {
@@ -151,6 +156,16 @@ class MetricsGenerator {
     } // namespace metrics
 
     } // namespace «pkg_name»
+
+    «FOR metric : resource.allContents.filter(Metric).toIterable»
+    /* fmt::formatter specialization */
+    template <>
+    struct fmt::formatter<«pkg_name»::metrics::«metric.name»> : fmt::ostream_formatter {};
+    template <>
+    struct fmt::formatter<«pkg_name»::metrics::«metric.name»_point> : fmt::ostream_formatter {};
+    template <>
+    struct fmt::formatter<«pkg_name»::metrics::«metric.name»_accumulator> : fmt::ostream_formatter {};
+    «ENDFOR»
     '''
   }
 

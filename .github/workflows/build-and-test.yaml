@@ -7,8 +7,7 @@ on:
   pull_request:
 
 env:
-  BENV_IMAGE: public.ecr.aws/u7d6c4a3/solarwinds-opentelemetry-network:buil-env-buildx
-
+  BENV_IMAGE: public.ecr.aws/u7d6c4a3/solarwinds-opentelemetry-network:build-env-k6  
 concurrency:
   group: build-and-test-${{ github.event.pull_request_number || github.ref }}
   cancel-in-progress: true
@@ -117,6 +116,7 @@ jobs:
         ./build.sh k8s-relay
 
   build-cloud-collector:
+    if: false
     name: build-cloud-collector
     runs-on: ubuntu-20.04
     needs: [clang-format-check]

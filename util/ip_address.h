@@ -12,7 +12,10 @@
 #include <util/expected.h>
 #include <util/short_string.h>
 
+#include <spdlog/cfg/env.h>
 #include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 
 #include <array>
 #include <iostream>
@@ -195,3 +198,6 @@ template <typename H> H AbslHashValue(H hash_state, const IPv4Address &addr)
 }
 
 std::ostream &operator<<(std::ostream &os, const IPv4Address &ipv4);
+
+template <> struct fmt::formatter<IPv4Address> : fmt::ostream_formatter {};
+template <> struct fmt::formatter<std::variant<IPv4Address, IPv6Address>> : fmt::ostream_formatter {};

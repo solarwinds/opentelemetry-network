@@ -15,6 +15,10 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 
 #include <cstdint>
 
@@ -127,5 +131,7 @@ public:
 private:
   int_type set_ = static_cast<int_type>(0);
 };
+
+template <typename Enum> struct fmt::formatter<EnumSet<Enum>> : fmt::ostream_formatter {};
 
 #include <util/enum.inl>

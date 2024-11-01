@@ -1,6 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 template <typename Out> Out &&operator<<(Out &&out, DockerHostConfigMetadata const &what)
 {
   out << "\"cpu_shares\":" << what.cpu_shares_ << ",\"cpu_period\":" << what.cpu_period_ << ",\"cpu_quota\":" << what.cpu_quota_
@@ -10,3 +15,5 @@ template <typename Out> Out &&operator<<(Out &&out, DockerHostConfigMetadata con
 
   return std::forward<Out>(out);
 }
+
+template <> struct fmt::formatter<DockerHostConfigMetadata> : fmt::ostream_formatter {};

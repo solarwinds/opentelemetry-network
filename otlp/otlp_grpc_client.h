@@ -17,6 +17,8 @@
 
 #include <unordered_map>
 
+template <> struct fmt::formatter<grpc::StatusCode> : fmt::ostream_formatter {};
+
 using opentelemetry::proto::collector::logs::v1::ExportLogsServiceRequest;
 using opentelemetry::proto::collector::logs::v1::ExportLogsServiceResponse;
 using opentelemetry::proto::collector::logs::v1::LogsService;

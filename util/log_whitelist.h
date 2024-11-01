@@ -37,7 +37,8 @@ template <typename Which> void set_log_whitelist(std::initializer_list<Which> wh
 void log_whitelist_all_globally();
 
 // this function is thread-safe
-template <typename Whitelist, typename = std::enable_if_t<std::is_enum_v<Whitelist>>> bool is_log_whitelisted(Whitelist which);
+template <typename Whitelist, typename = std::enable_if_t<std::is_enum_v<Whitelist>>>
+bool is_log_whitelisted(Whitelist which);
 
 // this function is thread-safe
 template <typename... Whitelist> bool is_log_whitelisted(std::tuple<Whitelist...> const &which);
