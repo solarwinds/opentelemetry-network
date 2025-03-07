@@ -46,7 +46,10 @@ class MessageGenerator {
 
     #ifdef __cplusplus
     # include <util/raw_json.h>
-
+    #include <spdlog/cfg/env.h>
+    #include <spdlog/fmt/fmt.h>
+    #include <spdlog/fmt/ostr.h>
+    #include <spdlog/spdlog.h>
     # include <utility>
     #endif /* __cplusplus */
 
@@ -84,6 +87,12 @@ class MessageGenerator {
     static const uint32_t «xmsg.struct_name»__data_size = «xmsg.size»;
     #ifdef __cplusplus
     } /* extern "C" */
+
+    /* fmt::formatter specialization */
+    #ifdef __cplusplus
+    template <>
+    struct fmt::formatter<«xmsg.struct_name»> : fmt::ostream_formatter {};
+    #endif /* __cplusplus */
 
     template <typename Out>
     Out &&operator <<(Out &&out, «xmsg.struct_name» const &what) {

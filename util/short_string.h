@@ -14,6 +14,11 @@
 #include <string>
 #include <string_view>
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 struct short_string_behavior {
   struct truncate_t {
   };
@@ -177,6 +182,8 @@ template <std::size_t N> struct short_string {
     return out;
   }
 };
+
+template <std::size_t N> struct fmt::formatter<short_string<N>> : fmt::ostream_formatter {};
 
 template <typename Array, typename = std::enable_if_t<std::is_array_v<Array>>, std::size_t Size = std::extent_v<Array>>
 short_string<Size> to_short_string(std::string_view s)

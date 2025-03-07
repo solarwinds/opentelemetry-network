@@ -8,6 +8,7 @@
 #include <collector/kernel/entrypoint_error.h>
 #include <collector/kernel/troubleshoot_item.h>
 #include <common/host_info.h>
+#include <optional>
 #include <util/logger.h>
 
 /**

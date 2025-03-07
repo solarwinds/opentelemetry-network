@@ -41,6 +41,10 @@ typedef int8_t s8;
 #endif /* #ifndef __KERNEL__ */
 
 #ifdef __cplusplus
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 
 #include <chrono>
 
@@ -80,6 +84,12 @@ Out &operator<<(Out &&out, T value)
   out.flags(format_flags);
   return out;
 }
+
+template <>
+struct fmt::formatter<u128> : fmt::ostream_formatter {};
+
+template <>
+struct fmt::formatter<s128> : fmt::ostream_formatter {};
 
 #endif /* __cplusplus */
 

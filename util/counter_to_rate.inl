@@ -2,13 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <array>
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 
 namespace data {
 
 template <typename T> constexpr T CounterToRate<T>::commit_rate(bool empty_if_unitary)
 {
   T choice[2] = {value_ - prev_, T{}};
+  std::atomic_thread_fence(std::memory_order_release); 
   prev_ = value_;
+
+  std::atomic_thread_fence(std::memory_order_acquire);
   return choice[empty_if_unitary & (count_ < 2)];
 }
 
@@ -35,3 +42,5 @@ template <typename Out, typename U> Out &&operator<<(Out &&out, CounterToRate<U>
 }
 
 } // namespace data
+
+template <typename U> struct fmt::formatter<data::CounterToRate<U>> : fmt::ostream_formatter {};

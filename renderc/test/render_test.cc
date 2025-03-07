@@ -18,27 +18,35 @@ TEST(RenderTest, AutoHandle)
   test::app1::Index index;
 
   {
+    //std::cout << "Allocating a span" << std::endl;
     auto span = index.simple_span.alloc();
     ASSERT_TRUE(span.valid());
 
+    //std::cout << "Checking the size" << std::endl;
     ASSERT_EQ(index.simple_span.size(), 1);
   }
 
   // When the auto handle goes out of scope, the span should be freed
+  //std::cout << "Checking the size again" << std::endl;
   ASSERT_EQ(index.simple_span.size(), 0);
 
   {
+    //std::cout << "Allocating a span" << std::endl;
     auto span = index.simple_span.alloc();
     ASSERT_TRUE(span.valid());
 
+    //std::cout << "Checking the size" << std::endl;
     ASSERT_EQ(index.simple_span.size(), 1);
 
     // Manually put the reference
+    //std::cout << "Putting the reference" << std::endl;
     span.put();
     // `put()` should make the handle invalid to make later accesses fail, and facilitate debugging
+    //std::cout << "Checking the validity" << std::endl;
     ASSERT_FALSE(span.valid());
 
     // The span should be freed after put even though the auto handle is still in scope
+    //std::cout << "Checking the size again" << std::endl;
     ASSERT_EQ(index.simple_span.size(), 0);
   }
 }

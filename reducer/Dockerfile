@@ -1,7 +1,7 @@
 # Copyright The OpenTelemetry Authors
 # SPDX-License-Identifier: Apache-2.0
 
-FROM bitnami/minideb:bullseye
+FROM bitnami/minideb:bookworm
 
 LABEL org.label-schema.name="opentelemetry-ebpf-reducer"
 LABEL org.label-schema.description="OpenTelemetry eBPF reducer"

@@ -10,6 +10,11 @@
 #include <util/enum.h>
 #include <util/version.h>
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 #include <absl/time/time.h>
 
 #include <cassert>
@@ -98,5 +103,8 @@ namespace versions::client {
 constexpr VersionInfo MINIMUM_ACCEPTED_VERSION{0, 9, 0};
 
 } // namespace versions::client
+
+template <> struct fmt::formatter<FlowSide> : fmt::ostream_formatter {
+};
 
 #include <reducer/constants.inl>

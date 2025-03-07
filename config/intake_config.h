@@ -14,6 +14,11 @@
 
 #include <uv.h>
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -118,3 +123,5 @@ private:
 };
 
 } // namespace config
+
+template <> struct fmt::formatter<config::IntakeConfig> : fmt::ostream_formatter {};
